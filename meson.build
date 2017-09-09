@@ -69,5 +69,5 @@ nitfol_srcs = [
     startc
 ]
 
-executable('nitfol', sources : nitfol_srcs, dependencies : glk_dep, c_args : ['-ansi','-DSMART_TOKENISER', '-DNO_TICK', '-DDEBUGGING'], install : true)
+executable('nitfol', sources : nitfol_srcs, dependencies : glk_dep, c_args : ['-ansi','-DSMART_TOKENISER', '-DNO_TICK'], install : true)
  
