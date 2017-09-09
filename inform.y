@@ -304,7 +304,7 @@ input:	  /* empty string */
 /* :: Show the current source language. */
 	| LANGUAGE		{ infix_print_string("The current source language is \"inform\".\n"); }
 /* :: Get information on the current source file. */
-	| INFOSOURCE		{ infix_print_string("Current source file is "); infix_print_string(cur_file->filename); infix_print_string("\nContains "); infix_print_number(cur_file->num_lines); infix_print_string(" lines.\nSource language is inform.\n"); }
+	| INFOSOURCE		{ infix_print_string("Current source file is "); infix_print_string(cur_file?cur_file->filename:"unknown"); infix_print_string("\nContains "); infix_print_number(cur_file?cur_file->num_lines:0); infix_print_string(" lines.\nSource language is inform.\n"); }
 /* :: List source files. */
 	| INFOSOURCES		{ infix_print_string("Source files for which symbols have been read in:\n\n"); infix_list_files(); infix_print_char('\n'); }
 /* :: Show licensing information. */
@@ -346,9 +346,9 @@ input:	  /* empty string */
 */
 ;
 
-linespec: NUM			{ if($1.t == Z_ROUTINE) $$ = infix_get_routine_PC($1.v); else { infix_location l; infix_decode_fileloc(&l, cur_file->filename, $1.v); $$ = l.thisPC; } }
-	| '+' NUM		{ infix_location l; infix_decode_fileloc(&l, cur_file->filename, cur_line + $2.v); $$ = l.thisPC; }
-	| '-' NUM		{ infix_location l; infix_decode_fileloc(&l, cur_file->filename, cur_line - $2.v); $$ = l.thisPC; }
+linespec: NUM			{ if($1.t == Z_ROUTINE) $$ = infix_get_routine_PC($1.v); else { infix_location l; infix_decode_fileloc(&l, cur_file?cur_file->filename:"", $1.v); $$ = l.thisPC; } }
+	| '+' NUM		{ infix_location l; infix_decode_fileloc(&l, cur_file?cur_file->filename:"", cur_line + $2.v); $$ = l.thisPC; }
+	| '-' NUM		{ infix_location l; infix_decode_fileloc(&l, cur_file?cur_file->filename:"", cur_line - $2.v); $$ = l.thisPC; }
 	| DFILE ':' NUM		{ if($3.t == Z_ROUTINE) $$ = UNPACKR($3.v); else { infix_location l; infix_decode_fileloc(&l, $1->filename, $3.v); $$ = l.thisPC; } }
 	| '*' NUM		{ $$ = $2.v;			}
 ;
@@ -388,6 +388,7 @@ commaexp: exp
 /* Expressions with conditions */
 condexp:
 	exp CONDITION { cond_list newcond; newcond.val = $1.v; newcond.condfunc = $2.condfunc; newcond.opposite = $2.opposite; LEaddm(condlist, newcond, n_rmmalloc); } orlist { if($4) ignoreeffects--; $$.v = $4; $$.t = Z_BOOLEAN; LEremovem(condlist, n_rmfreeone); }
+;
 
 /* Expressions without commas */
 exp:	  NUM

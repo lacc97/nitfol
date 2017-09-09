@@ -250,7 +250,10 @@ BOOL load_header(strid_t zfile, offset filesize, BOOL report_errors)
   z_synonymtable  = MSBdecodeZ(header + HD_ABBREV);
   
   switch(zversion) {
-  case 1: case 2: case 3:
+  case 1: case 2:
+    game_size     = filesize;
+    break;
+  case 3:
     game_size     = ((offset) MSBdecodeZ(header + HD_LENGTH)) * 2;
     break;
   case 4: case 5:
@@ -329,13 +332,15 @@ void z_init(strid_t zfile)
     n_show_fatal(E_SYSTEM, "unexpected number of bytes read", bytes_read);
 
   z_checksum = 0;
-  for(i = 0x40; i < game_size; i++)
-    z_checksum += HIBYTE(i);
-  z_checksum = ARITHMASK(z_checksum);
+  if (zversion >= 3) {
+    for(i = 0x40; i < game_size; i++)
+      z_checksum += HIBYTE(i);
+    z_checksum = ARITHMASK(z_checksum);
 
-  if(z_checksum != LOWORD(HD_CHECKSUM)) {
-    n_show_error(E_CORRUPT, "Checksum does not match", z_checksum);
-    check_ascii_mode();
+    if(LOWORD(HD_CHECKSUM) != 0 && z_checksum != LOWORD(HD_CHECKSUM)) {
+      n_show_error(E_CORRUPT, "Checksum does not match", z_checksum);
+      check_ascii_mode();
+    }
   }
 
 

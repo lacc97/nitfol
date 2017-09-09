@@ -900,13 +900,14 @@ void op_sread(void)
 
   length = n_read(text + 1, maxlen, operand[1], 0,
 		  operand[2], operand[3], &term);
-  if(!read_abort)
+  if(!read_abort) {
     LOBYTEwrite(text + 1 + length, 0);  /* zero terminator */
 
-  if(allow_saveundo) {
-    if(!has_done_save_undo && auto_save_undo)
-      saveundo(FALSE);
-    has_done_save_undo = FALSE;
+    if(allow_saveundo) {
+      if(!has_done_save_undo && auto_save_undo)
+        saveundo(FALSE);
+      has_done_save_undo = FALSE;
+    }
   }
 }
 
@@ -928,12 +929,12 @@ void op_aread(void)
   if(!read_abort) {
     LOBYTEwrite(text + 1, length);
     mop_store_result(term);
-  }
-
-  if(allow_saveundo) {
-    if(!has_done_save_undo && auto_save_undo)
-      saveundo(FALSE);
-    has_done_save_undo = FALSE;
+  
+    if(allow_saveundo) {
+      if(!has_done_save_undo && auto_save_undo)
+        saveundo(FALSE);
+      has_done_save_undo = FALSE;
+    }
   }
 }
 
@@ -1094,5 +1095,38 @@ void op_set_font(void)
 
 void op_print_unicode(void)
 {
-  output_char(operand[0]);
+  if(!allow_output)
+    return;
+  if(operand[0] >= 256 || (operand[0] > 127 && operand[0] < 160)) {
+    output_char('?');
+    return;
+  }
+  if(output_stream & STREAM3) {
+    if(operand[0] >= 160) {
+      const unsigned char default_unicode_zscii_translation[] = {
+        0x00, 0xde, 0x00, 0xdb, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0xa3, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0xa2, 0x00, 0x00, 0x00, 0xdf, 
+        0xba, 0xaf, 0xc4, 0xd0, 0x9e, 0xca, 0xd4, 0xd6, 
+        0xbb, 0xb0, 0xc5, 0xa7, 0xbc, 0xb1, 0xc6, 0xa8, 
+        0xda, 0xd1, 0xbd, 0xb2, 0xc7, 0xd2, 0x9f, 0x00, 
+        0xcc, 0xbe, 0xb3, 0xc8, 0xa0, 0xb4, 0xd9, 0xa1, 
+        0xb5, 0xa9, 0xbf, 0xcd, 0x9b, 0xc9, 0xd3, 0xd5, 
+        0xb6, 0xaa, 0xc0, 0xa4, 0xb7, 0xab, 0xc1, 0xa5, 
+        0xd8, 0xce, 0xb8, 0xac, 0xc2, 0xcf, 0x9c, 0x00, 
+        0xcb, 0xb9, 0xad, 0xc3, 0x9d, 0xae, 0xd7, 0xa6
+      };
+      unsigned char c = default_unicode_zscii_translation[operand[0] - 160];
+      output_char(c == 0 ? '?' : c);
+    } else if(operand[0] == 10) {
+      output_char(13);
+    } else {
+      output_char(operand[0]);
+    }
+  } else {
+    if(output_stream & STREAM1) {
+      z_put_char(current_window, operand[0]);
+    }
+  }
 }

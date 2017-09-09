@@ -41,7 +41,7 @@ int getstring(zword packedaddress)
 
 
 /* Returns character for given alphabet, letter pair */
-static char alphabetsoup(unsigned spoon, unsigned char letter)
+static unsigned char alphabetsoup(unsigned spoon, unsigned char letter)
 {
   const char *alphabet;
 

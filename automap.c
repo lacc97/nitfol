@@ -1066,6 +1066,8 @@ BOOL automap_unexplore(void)
 
 #else
 
+char *roomsymbol = NULL;
+
 BOOL automap_unexplore(void)
 {
   return FALSE;

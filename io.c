@@ -697,8 +697,11 @@ void z_flush_fixed(zwinid window)
   end_line += start_line;
 
   o = glk_window_get_parent(window->win);
-  glk_window_set_arrangement(o, window->method,
-			     end_line, window->win);
+  glk_window_get_size(window->win, &winx, &winy);
+  if (!(window->method & winmethod_Above || window->method & winmethod_Below)
+      || winy != end_line)
+    glk_window_set_arrangement(o, window->method,
+			       end_line, window->win);
   glk_window_get_size(window->win, &winx, &winy);
 
   if(window->draw_callback) {

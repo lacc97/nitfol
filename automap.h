@@ -26,6 +26,7 @@ const char * automap_explore (void);
 BOOL automap_unexplore (void);
 
 #else
+extern char * roomsymbol;
 BOOL automap_unexplore (void);
 
 #endif
